@@ -25,7 +25,7 @@ export async function submitForm(values: unknown) {
         prenom: parsed.data.prenom,
         kamil: parsed.data.kamil,
         zikrs: parsed.data.zikrs
-      }
+      } as any
     });
 
     if (parsed.data.xassidas && parsed.data.xassidas.length > 0) {
