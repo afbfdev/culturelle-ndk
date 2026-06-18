@@ -56,13 +56,13 @@ export default async function DashboardPage() {
               Pilotage Xassida, Kamil et Zikrs sur un seul ecran.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
-              Cette interface permet d'alimenter les Xassida cote backend, puis de
+              Cette interface permet d&apos;alimenter les Xassida cote backend, puis de
               suivre les trois dimensions metier du formulaire avec des KPI separes :
               Xassida, Kamil et Zikrs.
             </p>
             {dashboard.source === "fallback" ? (
               <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                La base Prisma n'est pas encore disponible ou migree. Le dashboard
+                La base Prisma n&apos;est pas encore disponible ou migree. Le dashboard
                 affiche le catalogue par defaut sans KPI persistants.
               </div>
             ) : (
@@ -95,7 +95,7 @@ export default async function DashboardPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sortOrder">Ordre d'affichage</Label>
+                <Label htmlFor="sortOrder">Ordre d&apos;affichage</Label>
                 <Input id="sortOrder" name="sortOrder" type="number" defaultValue={0} min={0} />
               </div>
               <Button type="submit" className="w-full">
@@ -406,7 +406,7 @@ export default async function DashboardPage() {
                 ))
               ) : (
                 <div className="rounded-3xl border border-dashed border-border/80 bg-white/70 p-5 text-sm text-muted-foreground">
-                  Aucun zikr detaille n'est encore disponible.
+                  Aucun zikr detaille n&apos;est encore disponible.
                 </div>
               )}
             </div>
