@@ -1,10 +1,12 @@
 "use server";
 
+import { getXassidaOptions } from "@/lib/data/xassidas";
 import { prisma } from "@/lib/prisma";
-import { submissionSchema } from "@/lib/validations/submission";
+import { createSubmissionSchema } from "@/lib/validations/submission";
 
 export async function submitForm(values: unknown) {
-  const parsed = submissionSchema.safeParse(values);
+  const xassidaOptions = await getXassidaOptions();
+  const parsed = createSubmissionSchema(xassidaOptions).safeParse(values);
 
   if (!parsed.success) {
     return {
@@ -22,8 +24,17 @@ export async function submitForm(values: unknown) {
         nom: parsed.data.nom,
         prenom: parsed.data.prenom,
         kamil: parsed.data.kamil,
-        xassidas: parsed.data.xassidas,
-        zikrs: parsed.data.zikrs
+        zikrs: parsed.data.zikrs,
+        xassidaEntries: {
+          create: parsed.data.xassidas.map((entry) => ({
+            quantity: entry.quantity,
+            xassida: {
+              connect: {
+                id: entry.id
+              }
+            }
+          }))
+        }
       }
     });
 

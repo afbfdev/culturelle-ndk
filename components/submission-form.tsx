@@ -6,9 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Send } from "lucide-react";
 
 import { submitForm } from "@/app/actions/submitForm";
-import { xassidaOptions, kamilOptions } from "@/lib/constants";
+import type { XassidaOption } from "@/lib/data/xassidas";
+import { kamilOptions } from "@/lib/constants";
 import {
-  submissionPayloadSchema,
+  createSubmissionPayloadSchema,
   type SubmissionFormValues
 } from "@/lib/validations/submission";
 import { ArrayField } from "@/components/ui/array-field";
@@ -23,23 +24,32 @@ import { Toast } from "@/components/ui/toast";
 
 const today = new Date().toISOString().slice(0, 10);
 
-const defaultValues: SubmissionFormValues = {
-  date: today,
-  nom: "",
-  prenom: "",
-  kamil: [],
-  zikrs: "",
-  xassidas: xassidaOptions.map((name) => ({
-    name,
-    quantity: 0
-  }))
+type SubmissionFormProps = {
+  xassidaOptions: XassidaOption[];
 };
 
-export function SubmissionForm() {
+function createDefaultValues(): SubmissionFormValues {
+  return {
+    date: today,
+    nom: "",
+    prenom: "",
+    kamil: [],
+    zikrs: "",
+    xassidas: [
+      {
+        xassidaId: "",
+        quantity: 0
+      }
+    ]
+  };
+}
+
+export function SubmissionForm({ xassidaOptions }: SubmissionFormProps) {
   const [toast, setToast] = useState<{
     kind: "success" | "error";
     message: string;
   } | null>(null);
+  const defaultValues = createDefaultValues();
 
   const {
     register,
@@ -49,7 +59,7 @@ export function SubmissionForm() {
     reset,
     formState: { errors, isSubmitting }
   } = useForm<SubmissionFormValues>({
-    resolver: zodResolver(submissionPayloadSchema),
+    resolver: zodResolver(createSubmissionPayloadSchema(xassidaOptions)),
     defaultValues,
     mode: "onChange",
     reValidateMode: "onChange"
@@ -57,8 +67,26 @@ export function SubmissionForm() {
 
   const selectedKamil = watch("kamil");
   const xassidas = watch("xassidas");
-  const activeXassidas = xassidas.filter((entry) => entry.quantity > 0).length;
+  const activeXassidas = xassidas.filter(
+    (entry) => entry.xassidaId.trim().length > 0 && entry.quantity > 0
+  ).length;
+  const selectedXassidaCount = xassidas.filter(
+    (entry) => entry.xassidaId.trim().length > 0
+  ).length;
+  const canAddXassidaRow = selectedXassidaCount < xassidaOptions.length;
   const isLoading = isSubmitting;
+  const xassidaRowErrors = Array.isArray(errors.xassidas)
+    ? errors.xassidas.map((entry) => {
+        if (!entry) {
+          return undefined;
+        }
+
+        return entry.message ?? entry.xassidaId?.message ?? entry.quantity?.message;
+      })
+    : [];
+  const xassidaGeneralError = Array.isArray(errors.xassidas)
+    ? undefined
+    : errors.xassidas?.message;
 
   useEffect(() => {
     if (!toast) {
@@ -92,6 +120,40 @@ export function SubmissionForm() {
     );
 
     setValue("xassidas", nextEntries, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true
+    });
+  };
+
+  const updateXassidaSelection = (index: number, xassidaId: string) => {
+    const nextEntries = xassidas.map((entry, entryIndex) =>
+      entryIndex === index ? { ...entry, xassidaId } : entry
+    );
+
+    setValue("xassidas", nextEntries, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true
+    });
+  };
+
+  const addXassidaRow = () => {
+    setValue(
+      "xassidas",
+      [...xassidas, { xassidaId: "", quantity: 0 }],
+      {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true
+      }
+    );
+  };
+
+  const removeXassidaRow = (index: number) => {
+    const nextEntries = xassidas.filter((_, entryIndex) => entryIndex !== index);
+
+    setValue("xassidas", nextEntries.length > 0 ? nextEntries : [{ xassidaId: "", quantity: 0 }], {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true
@@ -171,15 +233,24 @@ export function SubmissionForm() {
 
         <SectionCard
           eyebrow="Xassida"
-          title="Associez une quantite a chaque type"
-          description="Remplissez uniquement les lignes concernees. La carte se met en valeur des qu'une quantite est saisie."
+          title="Selectionnez les Xassida depuis la liste"
+          description="Le catalogue est alimente cote backend pour preparer son pilotage futur depuis le dashboard."
         >
           <div className="mb-4 inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
             {activeXassidas} type{activeXassidas > 1 ? "s" : ""} renseigne
           </div>
-          <ArrayField items={xassidas} onChange={updateXassidaQuantity} />
-          {errors.xassidas ? (
-            <p className="mt-3 text-sm text-red-700">{errors.xassidas.message}</p>
+          <ArrayField
+            options={xassidaOptions}
+            items={xassidas}
+            canAddRow={canAddXassidaRow}
+            onAddRow={addXassidaRow}
+            onChange={updateXassidaQuantity}
+            onSelectChange={updateXassidaSelection}
+            onRemoveRow={removeXassidaRow}
+            rowErrors={xassidaRowErrors}
+          />
+          {xassidaGeneralError ? (
+            <p className="mt-3 text-sm text-red-700">{xassidaGeneralError}</p>
           ) : null}
         </SectionCard>
 

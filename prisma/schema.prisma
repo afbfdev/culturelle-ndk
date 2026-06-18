@@ -9,15 +9,44 @@ datasource db {
 }
 
 model Submission {
-  id        String   @id @default(uuid())
-  date      DateTime @default(now())
-  nom       String
-  prenom    String
-  kamil     Int[]
-  xassidas  Json
-  zikrs     String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String             @id @default(uuid())
+  date           DateTime           @default(now())
+  nom            String
+  prenom         String
+  kamil          Int[]
+  zikrs          String?            @db.Text
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  xassidaEntries SubmissionXassida[]
 
   @@index([nom, prenom])
+  @@index([createdAt])
+}
+
+model Xassida {
+  id                String             @id @default(cuid())
+  slug              String             @unique
+  label             String             @unique
+  description       String?            @db.Text
+  isActive          Boolean            @default(true)
+  sortOrder         Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  submissionEntries SubmissionXassida[]
+
+  @@index([isActive, sortOrder])
+}
+
+model SubmissionXassida {
+  id           String     @id @default(cuid())
+  submissionId String
+  xassidaId    String
+  quantity     Int
+  createdAt    DateTime   @default(now())
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  xassida      Xassida    @relation(fields: [xassidaId], references: [id], onDelete: Restrict)
+
+  @@unique([submissionId, xassidaId])
+  @@index([submissionId])
+  @@index([xassidaId, createdAt])
 }

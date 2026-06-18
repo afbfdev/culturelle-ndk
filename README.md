@@ -47,5 +47,8 @@ Application Next.js pour remplacer le Google Form de collecte des realisations s
 - Hero et palette inspires du logo `public/assets/images/logondk.png`
 - Formulaire mobile-first en sections avec composants reutilisables
 - Validation en temps reel cote client avec Zod + React Hook Form
+- Catalogue Xassida alimente cote serveur via `lib/data/xassidas.ts`
+- Saisie des Xassida sous forme de select list + quantite
 - Server Action `app/actions/submitForm.ts` pour la validation serveur et l'insertion Prisma
-- Modele Prisma `Submission` pret pour Supabase
+- Modele Prisma relationnel `Submission`, `Xassida` et `SubmissionXassida`
+- Mini dashboard de pilotage dans `app/dashboard/page.tsx` avec KPI Xassida, Kamil et Zikrs

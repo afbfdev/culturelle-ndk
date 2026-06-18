@@ -1,9 +1,13 @@
 import Image from "next/image";
+import Link from "next/link";
 import { BookHeart, DatabaseZap, ShieldCheck } from "lucide-react";
 
 import { SubmissionForm } from "@/components/submission-form";
+import { getXassidaOptions } from "@/lib/data/xassidas";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const xassidaOptions = await getXassidaOptions();
+
   return (
     <main className="relative overflow-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-7xl">
@@ -36,6 +40,18 @@ export default function HomePage() {
                 <DatabaseZap className="h-5 w-5 text-primary" />
                 <p className="mt-3 text-sm font-semibold">Prisma pret pour Supabase</p>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/dashboard"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:-translate-y-0.5 hover:brightness-110"
+              >
+                Ouvrir le dashboard Xassida
+              </Link>
+              <span className="inline-flex h-11 items-center justify-center rounded-xl border border-primary/15 bg-white/75 px-5 text-sm font-semibold text-primary">
+                Formulaire public connecte au catalogue backend
+              </span>
             </div>
           </div>
 
@@ -71,7 +87,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <SubmissionForm />
+        <SubmissionForm xassidaOptions={xassidaOptions} />
       </div>
     </main>
   );
