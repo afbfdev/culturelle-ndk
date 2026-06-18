@@ -18,25 +18,25 @@ export async function submitForm(values: unknown) {
   }
 
   try {
-    await prisma.submission.create({
+    const submission = await prisma.submission.create({
       data: {
         date: parsed.data.date,
         nom: parsed.data.nom,
         prenom: parsed.data.prenom,
         kamil: parsed.data.kamil,
-        zikrs: parsed.data.zikrs,
-        xassidaEntries: {
-          create: parsed.data.xassidas.map((entry) => ({
-            quantity: entry.quantity,
-            xassida: {
-              connect: {
-                id: entry.id
-              }
-            }
-          }))
-        }
+        zikrs: parsed.data.zikrs
       }
     });
+
+    if (parsed.data.xassidas && parsed.data.xassidas.length > 0) {
+      await prisma.submissionXassida.createMany({
+        data: parsed.data.xassidas.map((entry) => ({
+          submissionId: submission.id,
+          xassidaId: entry.id,
+          quantity: entry.quantity
+        }))
+      });
+    }
 
     return {
       ok: true,
