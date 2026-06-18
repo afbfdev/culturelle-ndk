@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Submission {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  nom       String
+  prenom    String
+  kamil     Int[]
+  xassidas  Json
+  zikrs     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nom, prenom])
+}
