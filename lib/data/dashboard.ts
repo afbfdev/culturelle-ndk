@@ -1,6 +1,201 @@
 import { prisma } from "@/lib/prisma";
 import { kamilOptions } from "@/lib/constants";
-import { getXassidaCatalogState } from "@/lib/data/xassidas";
+import { ensureDefaultXassidas, getXassidaCatalogState } from "@/lib/data/xassidas";
+
+/** Objectif symbolique de Kamil pour le Magal — sert de jauge motivante. */
+export const COMMUNITY_KAMIL_OBJECTIVE = 450;
+
+export type CommunityData = Awaited<ReturnType<typeof getCommunityData>>;
+
+function emptyCommunityData(source: "fallback") {
+  return {
+    source,
+    totals: {
+      participants: 0,
+      kamilDeclared: 0,
+      xassidasRecited: 0,
+      zikrsRecited: 0,
+      totalWorks: 0,
+      recentParticipants: 0
+    },
+    objective: {
+      target: COMMUNITY_KAMIL_OBJECTIVE,
+      current: 0,
+      percent: 0
+    },
+    topXassidas: [] as Array<{
+      label: string;
+      totalQuantity: number;
+      submissionCount: number;
+    }>,
+    topZikrs: [] as Array<{
+      label: string;
+      totalQuantity: number;
+      count: number;
+    }>,
+    kamilDistribution: kamilOptions.map((value) => ({
+      kamilNumber: value,
+      submissionCount: 0
+    })),
+    recentDeclarations: [] as Array<{
+      id: string;
+      fullName: string;
+      createdAt: Date;
+      kamilCount: number;
+      xassidaCount: number;
+      xassidaQuantity: number;
+      zikrQuantity: number;
+    }>,
+    lastSubmissionAt: null as Date | null
+  };
+}
+
+/**
+ * Données du « mur communautaire » : totaux collectifs, jauge vers le Magal,
+ * classement des Xassidas, couverture des Kamil et flux des dernières déclarations.
+ */
+export async function getCommunityData() {
+  try {
+    await ensureDefaultXassidas();
+
+    const recentWindow = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [submissions, quantityAggregate, xassidas] = await Promise.all([
+      prisma.submission.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          nom: true,
+          prenom: true,
+          kamil: true,
+          createdAt: true,
+          xassidaEntries: { select: { quantity: true } },
+          zikrEntries: { select: { label: true, quantity: true } }
+        }
+      }),
+      prisma.submissionXassida.aggregate({ _sum: { quantity: true } }),
+      prisma.xassida.findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+        select: {
+          id: true,
+          label: true,
+          submissionEntries: { select: { quantity: true } }
+        }
+      })
+    ]);
+
+    const participants = submissions.length;
+    const kamilDeclared = submissions.reduce(
+      (sum, item) => sum + item.kamil.length,
+      0
+    );
+    const xassidasRecited = quantityAggregate._sum.quantity ?? 0;
+    const zikrsRecited = submissions.reduce(
+      (sum, item) =>
+        sum + item.zikrEntries.reduce((acc, entry) => acc + entry.quantity, 0),
+      0
+    );
+    const recentParticipants = submissions.filter(
+      (item) => item.createdAt >= recentWindow
+    ).length;
+
+    // Classement des zikrs par libellé normalisé (la casse n'importe pas).
+    const zikrCounter = new Map<
+      string,
+      { label: string; totalQuantity: number; count: number }
+    >();
+    for (const submission of submissions) {
+      for (const entry of submission.zikrEntries) {
+        const key = entry.label.trim().toLowerCase();
+        const current = zikrCounter.get(key);
+        if (current) {
+          current.totalQuantity += entry.quantity;
+          current.count += 1;
+        } else {
+          zikrCounter.set(key, {
+            label: entry.label,
+            totalQuantity: entry.quantity,
+            count: 1
+          });
+        }
+      }
+    }
+    const topZikrs = Array.from(zikrCounter.values()).sort(
+      (a, b) => b.totalQuantity - a.totalQuantity
+    );
+
+    const topXassidas = xassidas
+      .map((item) => ({
+        label: item.label,
+        totalQuantity: item.submissionEntries.reduce(
+          (sum, entry) => sum + entry.quantity,
+          0
+        ),
+        submissionCount: item.submissionEntries.length
+      }))
+      .sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+    const kamilCounter = new Map<number, number>();
+    for (const submission of submissions) {
+      for (const value of submission.kamil) {
+        kamilCounter.set(value, (kamilCounter.get(value) ?? 0) + 1);
+      }
+    }
+    const kamilDistribution = Array.from(
+      new Set([...kamilOptions, ...kamilCounter.keys()])
+    )
+      .sort((a, b) => a - b)
+      .map((value) => ({
+        kamilNumber: value,
+        submissionCount: kamilCounter.get(value) ?? 0
+      }));
+
+    const recentDeclarations = submissions.map((item) => ({
+      id: item.id,
+      fullName: `${item.prenom} ${item.nom}`.trim(),
+      createdAt: item.createdAt,
+      kamilCount: item.kamil.length,
+      xassidaCount: item.xassidaEntries.length,
+      xassidaQuantity: item.xassidaEntries.reduce(
+        (sum, entry) => sum + entry.quantity,
+        0
+      ),
+      zikrQuantity: item.zikrEntries.reduce(
+        (sum, entry) => sum + entry.quantity,
+        0
+      )
+    }));
+
+    return {
+      source: "database" as const,
+      totals: {
+        participants,
+        kamilDeclared,
+        xassidasRecited,
+        zikrsRecited,
+        totalWorks: kamilDeclared + xassidasRecited + zikrsRecited,
+        recentParticipants
+      },
+      objective: {
+        target: COMMUNITY_KAMIL_OBJECTIVE,
+        current: kamilDeclared,
+        percent: Math.min(
+          100,
+          Math.round((kamilDeclared / COMMUNITY_KAMIL_OBJECTIVE) * 100)
+        )
+      },
+      topXassidas,
+      topZikrs,
+      kamilDistribution,
+      recentDeclarations,
+      lastSubmissionAt: submissions[0]?.createdAt ?? null
+    };
+  } catch (error) {
+    console.error(error);
+    return emptyCommunityData("fallback");
+  }
+}
 
 export async function getDashboardData() {
   const catalogState = await getXassidaCatalogState({ includeInactive: true });

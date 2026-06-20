@@ -1,7 +1,11 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Amiri, Cormorant_Garamond, Manrope } from "next/font/google";
+import { cookies } from "next/headers";
 
 import "./globals.css";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { SESSION_COOKIE, isValidSession } from "@/lib/auth";
 
 const headingFont = Cormorant_Garamond({
   subsets: ["latin"],
@@ -14,21 +18,40 @@ const bodyFont = Manrope({
   variable: "--font-body"
 });
 
+const arabicFont = Amiri({
+  subsets: ["arabic"],
+  variable: "--font-arabic",
+  weight: ["400", "700"]
+});
+
 export const metadata: Metadata = {
-  title: "Commission Culturelle NDK",
+  title: "Daara NDK — Réalisations spirituelles · Magal 2026",
   description:
-    "Plateforme de soumission des réalisations spirituelles pour le Magal 2026."
+    "Plateforme du Daara Nouroud Darayni (Kaolack) pour déclarer ses réalisations spirituelles — Coran, Xassidas et Zikrs — en vue du Magal 2026."
 };
 
-export default function RootLayout({
+export const viewport: Viewport = {
+  themeColor: "#0f5132"
+};
+
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const token = cookies().get(SESSION_COOKIE)?.value;
+  const isAdmin = await isValidSession(token);
+
   return (
     <html lang="fr">
-      <body className={`${headingFont.variable} ${bodyFont.variable} font-[family-name:var(--font-body)]`}>
-        {children}
+      <body
+        className={`${headingFont.variable} ${bodyFont.variable} ${arabicFont.variable} font-body`}
+      >
+        <div className="flex min-h-dvh flex-col">
+          <SiteHeader isAdmin={isAdmin} />
+          <div className="flex-1">{children}</div>
+          <SiteFooter />
+        </div>
       </body>
     </html>
   );

@@ -1,93 +1,92 @@
 import Image from "next/image";
-import Link from "next/link";
-import { BookHeart, DatabaseZap, ShieldCheck } from "lucide-react";
 
-import { SubmissionForm } from "@/components/submission-form";
+import { Bismillah } from "@/components/site/bismillah";
+import { Arabesque } from "@/components/site/arabesque";
+import { SubmissionWizard } from "@/components/wizard/submission-wizard";
 import { getXassidaOptions } from "@/lib/data/xassidas";
+
+const pillars = [
+  {
+    image: "/assets/images/coran.png",
+    title: "Coran (Jukki)",
+    text: "Déclarez chaque lecture complète du Coran achevée."
+  },
+  {
+    image: "/assets/images/khassida.png",
+    title: "Xassidas",
+    text: "Comptabilisez les Xassidas de Cheikh Ahmadou Bamba récitées."
+  },
+  {
+    image: "/assets/images/zikr.png",
+    title: "Zikrs",
+    text: "Détaillez vos formules de rappel et leurs quantités."
+  }
+];
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const xassidaOptions = await getXassidaOptions();
 
   return (
-    <main className="relative overflow-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-12">
-      <div className="mx-auto max-w-7xl">
-        <section className="mb-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="space-y-6">
-            <p className="inline-flex rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-primary">
-              Commission Culturelle NDK
-            </p>
-            <div className="space-y-4">
-              <h1 className="max-w-3xl font-[family-name:var(--font-heading)] text-4xl font-semibold leading-none text-foreground sm:text-6xl">
-                Centraliser les realisations spirituelles du Magal 2026, avec une experience simple sur mobile.
-              </h1>
-              <p className="max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-                Cette interface reprend les codes du logo NDK avec une palette
-                vert emeraude, or et blanc, tout en offrant une saisie rapide,
-                une validation en temps reel et une soumission securisee via Server Action.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-soft">
-                <BookHeart className="h-5 w-5 text-primary" />
-                <p className="mt-3 text-sm font-semibold">Parcours mobile-first</p>
-              </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-soft">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                <p className="mt-3 text-sm font-semibold">Validation client et serveur</p>
-              </div>
-              <div className="rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-soft">
-                <DatabaseZap className="h-5 w-5 text-primary" />
-                <p className="mt-3 text-sm font-semibold">Prisma pret pour Supabase</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/dashboard"
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:-translate-y-0.5 hover:brightness-110"
-              >
-                Ouvrir le dashboard Xassida
-              </Link>
-              <span className="inline-flex h-11 items-center justify-center rounded-xl border border-primary/15 bg-white/75 px-5 text-sm font-semibold text-primary">
-                Formulaire public connecte au catalogue backend
-              </span>
-            </div>
+    <main className="px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
+      <div className="mx-auto max-w-3xl">
+        {/* ---- Hero ---- */}
+        <section className="relative overflow-hidden rounded-4xl border border-border/70 bg-card/70 px-6 py-10 text-center shadow-soft sm:px-10 sm:py-14">
+          <div className="pointer-events-none absolute inset-0 text-primary/[0.05]">
+            <Arabesque id="hero-veil" size={60} />
           </div>
+          <div className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-48 w-48 rounded-full bg-gold/20 blur-3xl" />
 
-          <div className="relative">
-            <div className="absolute inset-0 rounded-[36px] bg-gradient-to-br from-primary/20 via-accent/20 to-transparent blur-2xl" />
-            <div className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/82 p-5 shadow-soft backdrop-blur sm:p-6">
-              <div className="pattern-overlay rounded-[28px] border border-primary/10 bg-gradient-to-br from-white via-secondary/35 to-white p-6">
-                <div className="mx-auto flex max-w-sm items-center gap-4">
-                  <div className="rounded-[28px] bg-white/90 p-3 shadow-soft">
+          <div className="relative flex flex-col items-center gap-5">
+            <Bismillah />
+
+            <p className="inline-flex rounded-full border border-gold/30 bg-gold-soft/60 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.28em] text-primary">
+              Daara Nouroud Darayni · Kaolack
+            </p>
+
+            <h1 className="text-balance font-heading text-4xl font-semibold leading-[1.05] text-primary sm:text-5xl">
+              Déclarez vos réalisations spirituelles pour le Magal 2026
+            </h1>
+
+            <div className="gold-rule w-24" />
+
+            <p className="max-w-xl text-pretty text-base leading-7 text-muted-foreground">
+              La Commission Culturelle NDK remplace l&apos;ancien formulaire par un
+              parcours guidé, simple et serein. Renseignez vos Jukki, vos Xassidas
+              et vos Zikrs en quelques étapes — vos œuvres rejoignent celles de
+              toute la Daara.
+            </p>
+
+            <div className="mt-2 grid w-full gap-3 sm:grid-cols-3">
+              {pillars.map((pillar) => (
+                <div
+                  key={pillar.title}
+                  className="rounded-3xl border border-border/70 bg-card/80 p-4 text-left"
+                >
+                  <span className="grid h-14 w-14 place-items-center overflow-hidden rounded-2xl bg-white p-1.5 ring-1 ring-border/70">
                     <Image
-                      src="/assets/images/logondk.png"
-                      alt="Logo NDK"
-                      width={110}
-                      height={110}
-                      className="h-[88px] w-[88px] object-contain sm:h-[110px] sm:w-[110px]"
-                      priority
+                      src={pillar.image}
+                      alt={pillar.title}
+                      width={56}
+                      height={56}
+                      className="h-full w-full object-contain"
                     />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-                      Nouroud Darayni
-                    </p>
-                    <p className="mt-2 font-[family-name:var(--font-heading)] text-3xl font-semibold leading-none">
-                      Kaolack
-                    </p>
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      Formulaire de declaration culturelle structure par sections, optimise pour smartphone.
-                    </p>
-                  </div>
+                  </span>
+                  <p className="mt-3 font-semibold text-foreground">{pillar.title}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {pillar.text}
+                  </p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <SubmissionForm xassidaOptions={xassidaOptions} />
+        {/* ---- Wizard ---- */}
+        <section className="mt-8">
+          <SubmissionWizard xassidaOptions={xassidaOptions} />
+        </section>
       </div>
     </main>
   );

@@ -12,12 +12,13 @@ export function CheckboxGrid({
   onToggle
 }: CheckboxGridProps) {
   return (
-    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6 sm:gap-3">
       {options.map((value) => (
         <CheckboxTile
           key={value}
           checked={selectedValues.includes(value)}
-          label={`Kamil ${value}`}
+          label={String(value)}
+          hint="Jukki"
           onToggle={() => onToggle(value)}
         />
       ))}

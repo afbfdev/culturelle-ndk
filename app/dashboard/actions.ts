@@ -33,10 +33,19 @@ export async function seedDefaultXassidasAction() {
   } finally {
     revalidatePath("/");
     revalidatePath("/dashboard");
+    revalidatePath("/admin");
   }
 }
 
-export async function createXassidaAction(formData: FormData) {
+export type CreateXassidaState = {
+  status: "idle" | "success" | "error";
+  message?: string;
+};
+
+export async function createXassidaAction(
+  _prevState: CreateXassidaState,
+  formData: FormData
+): Promise<CreateXassidaState> {
   const parsed = createXassidaSchema.safeParse({
     label: formData.get("label"),
     description: formData.get("description"),
@@ -44,20 +53,24 @@ export async function createXassidaAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Donnees invalides.");
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Données invalides."
+    };
   }
 
   const slug = slugifyXassidaLabel(parsed.data.label);
 
   if (!slug) {
-    throw new Error("Impossible de generer un identifiant valide pour cette Xassida.");
+    return {
+      status: "error",
+      message: "Impossible de générer un identifiant valide pour cette Xassida."
+    };
   }
 
   try {
     await prisma.xassida.upsert({
-      where: {
-        slug
-      },
+      where: { slug },
       update: {
         label: parsed.data.label,
         description: parsed.data.description || null,
@@ -74,10 +87,20 @@ export async function createXassidaAction(formData: FormData) {
     });
   } catch (error) {
     console.error(error);
-  } finally {
-    revalidatePath("/");
-    revalidatePath("/dashboard");
+    return {
+      status: "error",
+      message: "L'enregistrement a échoué. Vérifiez la connexion à la base."
+    };
   }
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin");
+
+  return {
+    status: "success",
+    message: `« ${parsed.data.label} » a bien été enregistrée.`
+  };
 }
 
 export async function toggleXassidaStatusAction(formData: FormData) {
@@ -102,6 +125,7 @@ export async function toggleXassidaStatusAction(formData: FormData) {
   } finally {
     revalidatePath("/");
     revalidatePath("/dashboard");
+    revalidatePath("/admin");
   }
 }
 
@@ -125,5 +149,6 @@ export async function restoreDefaultCatalogAction() {
   } finally {
     revalidatePath("/");
     revalidatePath("/dashboard");
+    revalidatePath("/admin");
   }
 }

@@ -3,21 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --background: 48 50% 98%;
-  --foreground: 150 52% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 150 52% 12%;
-  --primary: 145 57% 28%;
-  --primary-foreground: 48 50% 98%;
-  --secondary: 48 72% 88%;
-  --secondary-foreground: 150 52% 16%;
-  --muted: 52 33% 94%;
-  --muted-foreground: 144 18% 34%;
-  --accent: 46 77% 54%;
-  --accent-foreground: 150 52% 12%;
-  --border: 52 31% 80%;
-  --input: 52 31% 80%;
-  --ring: 145 57% 28%;
+  /* Sobre & spirituel clair — ivoire / sable, vert émeraude profond, or */
+  --background: 44 42% 95%;
+  --foreground: 158 44% 12%;
+  --card: 42 56% 99%;
+  --card-foreground: 158 44% 12%;
+
+  --primary: 158 66% 18%;
+  --primary-foreground: 44 56% 97%;
+  --primary-soft: 158 38% 92%;
+
+  --gold: 41 58% 46%;
+  --gold-foreground: 158 44% 12%;
+  --gold-soft: 43 64% 90%;
+
+  --secondary: 44 50% 90%;
+  --secondary-foreground: 158 44% 16%;
+  --muted: 42 32% 92%;
+  --muted-foreground: 158 14% 36%;
+  --accent: 41 58% 46%;
+  --accent-foreground: 158 44% 12%;
+
+  --border: 42 26% 83%;
+  --input: 42 26% 83%;
+  --ring: 158 66% 18%;
 }
 
 * {
@@ -26,34 +35,114 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   @apply bg-background text-foreground antialiased;
   background-image:
-    radial-gradient(circle at top, rgba(214, 179, 62, 0.22), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(17, 114, 67, 0.18), transparent 24%),
-    linear-gradient(140deg, rgba(255, 252, 242, 0.98), rgba(247, 244, 231, 0.96));
+    radial-gradient(circle at 12% -8%, hsla(41, 58%, 60%, 0.18), transparent 42%),
+    radial-gradient(circle at 92% 4%, hsla(158, 50%, 30%, 0.12), transparent 38%),
+    linear-gradient(180deg, hsla(44, 48%, 96%, 1), hsla(43, 40%, 93%, 1));
+  background-attachment: fixed;
+  min-height: 100dvh;
 }
 
-.pattern-overlay {
+/* ---- Calligraphie & titres ---- */
+.font-arabic {
+  font-feature-settings: "kern", "liga", "calt";
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* ---- Filets décoratifs ---- */
+.gold-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--gold) / 0.65) 18%,
+    hsl(var(--gold) / 0.65) 82%,
+    transparent
+  );
+}
+
+.gold-ornament::before,
+.gold-ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.5));
+}
+.gold-ornament::after {
+  background: linear-gradient(90deg, hsl(var(--gold) / 0.5), transparent);
+}
+
+/* ---- Texture géométrique discrète ---- */
+.geo-veil {
   background-image:
-    linear-gradient(rgba(19, 105, 64, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(19, 105, 64, 0.06) 1px, transparent 1px);
-  background-size: 32px 32px;
+    linear-gradient(hsla(158, 60%, 20%, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, hsla(158, 60%, 20%, 0.05) 1px, transparent 1px);
+  background-size: 34px 34px;
 }
 
-.section-fade {
-  animation: section-fade 0.45s ease-out both;
+/* ---- Cartes en verre dépoli ---- */
+.glass {
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(10px);
 }
 
-@keyframes section-fade {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
+/* ---- Barre de progression brillante ---- */
+.progress-track {
+  position: relative;
+  overflow: hidden;
+}
+.progress-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--primary-foreground) / 0.35),
+    transparent
+  );
+  animation: shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+
+/* ---- Apparition douce, respecte prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* ---- Scrollbar discrète ---- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.25);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.4);
+  background-clip: padding-box;
 }

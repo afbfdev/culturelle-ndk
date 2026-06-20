@@ -1,416 +1,211 @@
 import {
-  BarChart3,
   BookOpenText,
-  CircleDot,
   Hash,
-  Layers3,
-  MessageSquareText,
-  RefreshCw,
-  ShieldCheck
+  Radio,
+  Sparkles,
+  Trophy,
+  Users
 } from "lucide-react";
 
-import {
-  createXassidaAction,
-  restoreDefaultCatalogAction,
-  seedDefaultXassidasAction,
-  toggleXassidaStatusAction
-} from "@/app/dashboard/actions";
-import { Button } from "@/components/ui/button";
+import { Arabesque } from "@/components/site/arabesque";
+import { DeclarationsFeed } from "@/components/dashboard/declarations-feed";
+import { LeaderboardCard } from "@/components/dashboard/leaderboard-card";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { getDashboardData } from "@/lib/data/dashboard";
+import { getCommunityData } from "@/lib/data/dashboard";
 
-function formatDate(date: Date | null) {
-  if (!date) {
-    return "Aucune soumission";
-  }
+const nf = new Intl.NumberFormat("fr-FR");
 
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(date);
-}
+export const dynamic = "force-dynamic";
 
-function formatDecimal(value: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 1,
-    minimumFractionDigits: 0
-  }).format(value);
-}
+export default async function CommunityWallPage() {
+  const data = await getCommunityData();
+  const { totals, objective } = data;
 
-export default async function DashboardPage() {
-  const dashboard = await getDashboardData();
+  const counters = [
+    {
+      icon: Users,
+      value: totals.participants,
+      label: "Participants",
+      hint: `${nf.format(totals.recentParticipants)} cette semaine`
+    },
+    {
+      icon: Hash,
+      value: totals.kamilDeclared,
+      label: "Jukki déclarés",
+      hint: "Lectures complètes du Coran"
+    },
+    {
+      icon: BookOpenText,
+      value: totals.xassidasRecited,
+      label: "Xassidas récitées",
+      hint: "Toutes Xassidas confondues"
+    },
+    {
+      icon: Sparkles,
+      value: totals.zikrsRecited,
+      label: "Zikrs récités",
+      hint: "Tous zikrs confondus"
+    }
+  ];
+
+  const maxKamil = Math.max(
+    1,
+    ...data.kamilDistribution.map((item) => item.submissionCount)
+  );
 
   return (
-    <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-          <Card className="section-fade overflow-hidden border-primary/10 bg-white/92 p-6 sm:p-8">
-            <p className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-primary">
-              Dashboard Culturel
-            </p>
-            <h1 className="mt-4 font-[family-name:var(--font-heading)] text-4xl font-semibold leading-none text-foreground">
-              Pilotage Xassida, Kamil et Zikrs sur un seul ecran.
+    <main className="px-4 pb-12 pt-8 sm:px-6 sm:pt-12">
+      <div className="mx-auto max-w-5xl space-y-6">
+        {/* ---- En-tête ---- */}
+        <section className="relative overflow-hidden rounded-4xl border border-border/70 bg-card/75 px-6 py-10 text-center shadow-soft sm:px-10">
+          <div className="pointer-events-none absolute inset-0 text-primary/[0.05]">
+            <Arabesque id="wall-veil" size={60} />
+          </div>
+          <div className="relative flex flex-col items-center gap-4">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold-soft/60 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.26em] text-primary">
+              <Radio className="h-3.5 w-3.5 text-gold" />
+              {data.source === "database" ? "En direct" : "Aperçu"}
+            </span>
+            <h1 className="text-balance font-heading text-4xl font-semibold leading-tight text-primary sm:text-5xl">
+              Ensemble vers le Magal 2026
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground">
-              Cette interface permet d&apos;alimenter les Xassida cote backend, puis de
-              suivre les trois dimensions metier du formulaire avec des KPI separes :
-              Xassida, Kamil et Zikrs.
+            <div className="gold-rule w-24" />
+            <p className="max-w-xl text-base leading-7 text-muted-foreground">
+              Le mur des réalisations spirituelles du Daara Nouroud Darayni.
+              Chaque déclaration fait grandir l&apos;œuvre collective.
             </p>
-            {dashboard.source === "fallback" ? (
-              <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                La base Prisma n&apos;est pas encore disponible ou migree. Le dashboard
-                affiche le catalogue par defaut sans KPI persistants.
-              </div>
-            ) : (
-              <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <ShieldCheck className="h-4 w-4" />
-                Donnees lues depuis PostgreSQL via Prisma
-              </div>
-            )}
-          </Card>
-
-          <Card className="section-fade p-6 sm:p-8">
-            <div className="flex items-center gap-2 text-primary">
-              <BookOpenText className="h-5 w-5" />
-              <p className="text-sm font-semibold uppercase tracking-[0.2em]">
-                Alimentation
+            {data.source === "fallback" ? (
+              <p className="rounded-2xl border border-gold/30 bg-gold-soft/50 px-4 py-2 text-sm text-primary">
+                La base de données n&apos;est pas encore connectée — les compteurs
+                s&apos;animeront dès les premières déclarations.
               </p>
-            </div>
-            <form action={createXassidaAction} className="mt-5 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="label">Libelle Xassida</Label>
-                <Input id="label" name="label" placeholder="Ex: Hizbul Falah" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  placeholder="Contexte ou precision utile pour le dashboard."
-                  className="min-h-24"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="sortOrder">Ordre d&apos;affichage</Label>
-                <Input id="sortOrder" name="sortOrder" type="number" defaultValue={0} min={0} />
-              </div>
-              <Button type="submit" className="w-full">
-                Ajouter ou mettre a jour la Xassida
-              </Button>
-            </form>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <form action={seedDefaultXassidasAction}>
-                <Button type="submit" variant="secondary" className="w-full gap-2">
-                  <Layers3 className="h-4 w-4" />
-                  Initialiser le catalogue
-                </Button>
-              </form>
-              <form action={restoreDefaultCatalogAction}>
-                <Button type="submit" variant="ghost" className="w-full gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Restaurer les valeurs par defaut
-                </Button>
-              </form>
-            </div>
-          </Card>
+            ) : null}
+          </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <Card className="section-fade p-5">
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              Soumissions totales
-            </p>
-            <p className="mt-3 text-3xl font-semibold">{dashboard.overview.totalSubmissions}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {dashboard.overview.recentSubmissions} sur les 7 derniers jours
-            </p>
-          </Card>
-          <Card className="section-fade p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <BookOpenText className="h-4 w-4" />
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                Xassida actives
+        {/* ---- Compteurs ---- */}
+        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {counters.map((counter) => (
+            <Card key={counter.label} className="animate-fade-up p-5">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-primary-soft text-primary">
+                <counter.icon className="h-5 w-5" />
+              </span>
+              <p className="mt-4 font-heading text-4xl font-semibold leading-none text-primary">
+                {nf.format(counter.value)}
               </p>
-            </div>
-            <p className="mt-3 text-3xl font-semibold">{dashboard.xassida.kpis.activeXassidas}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              sur {dashboard.xassida.kpis.totalXassidas} dans le catalogue
-            </p>
-          </Card>
-          <Card className="section-fade p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <Hash className="h-4 w-4" />
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                Kamil saisis
+              <p className="mt-2 text-sm font-semibold text-foreground">
+                {counter.label}
               </p>
-            </div>
-            <p className="mt-3 text-3xl font-semibold">
-              {dashboard.kamil.kpis.totalSelections}
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {dashboard.kamil.kpis.uniqueCovered} numeros distincts couverts
-            </p>
-          </Card>
-          <Card className="section-fade p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <MessageSquareText className="h-4 w-4" />
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                Zikrs renseignes
-              </p>
-            </div>
-            <p className="mt-3 text-3xl font-semibold">{dashboard.zikrs.kpis.totalWithZikrs}</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {formatDecimal(dashboard.zikrs.kpis.completionRate)}% des soumissions
-            </p>
-          </Card>
-          <Card className="section-fade p-5">
-            <div className="flex items-center gap-2 text-primary">
-              <BarChart3 className="h-4 w-4" />
-              <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-                Couverture
-              </p>
-            </div>
-            <p className="mt-3 text-3xl font-semibold">
-              {dashboard.xassida.kpis.activeXassidas > 0
-                ? Math.round(
-                    (dashboard.xassida.kpis.usedXassidas /
-                      dashboard.xassida.kpis.activeXassidas) *
-                      100
-                  )
-                : 0}
-              %
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              des Xassida actives deja sollicitees
-            </p>
-          </Card>
+              <p className="mt-0.5 text-xs text-muted-foreground">{counter.hint}</p>
+            </Card>
+          ))}
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-3">
-          <Card className="section-fade p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-              Indicateurs Xassida
-            </p>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Quantite totale</span>
-                <span className="font-semibold">{dashboard.xassida.kpis.totalDeclaredQuantity}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Xassida utilisees</span>
-                <span className="font-semibold">{dashboard.xassida.kpis.usedXassidas}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Catalogue actif</span>
-                <span className="font-semibold">
-                  {dashboard.xassida.kpis.activeXassidas}/{dashboard.xassida.kpis.totalXassidas}
-                </span>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="section-fade p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-              Indicateurs Kamil
-            </p>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Numeros couverts</span>
-                <span className="font-semibold">{dashboard.kamil.kpis.uniqueCovered}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Kamil le plus cite</span>
-                <span className="font-semibold">
-                  {dashboard.kamil.kpis.mostSelected
-                    ? `Kamil ${dashboard.kamil.kpis.mostSelected}`
-                    : "Aucun"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Moyenne / soumission</span>
-                <span className="font-semibold">
-                  {formatDecimal(dashboard.kamil.kpis.averagePerSubmission)}
-                </span>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="section-fade p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-              Indicateurs Zikrs
-            </p>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Longueur moyenne</span>
-                <span className="font-semibold">
-                  {Math.round(dashboard.zikrs.kpis.averageLength)} caracteres
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Volume texte total</span>
-                <span className="font-semibold">
-                  {dashboard.zikrs.kpis.totalCharacters} caracteres
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">Zikrs recents</span>
-                <span className="font-semibold">{dashboard.zikrs.kpis.recentWithZikrs}</span>
-              </div>
-            </div>
-          </Card>
-        </section>
-
+        {/* ---- Jauge objectif ---- */}
         <section>
-          <Card className="section-fade overflow-hidden">
-            <div className="flex flex-col gap-2 border-b border-border/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <Card className="animate-fade-up overflow-hidden p-6 sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                  Catalogue et KPI
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">
+                  Objectif symbolique du Magal
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Vision detaillee par Xassida
+                <h2 className="mt-1.5 font-heading text-2xl font-semibold text-primary">
+                  {nf.format(objective.current)} Jukki sur {nf.format(objective.target)}
                 </h2>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-semibold">
-                <CircleDot className="h-4 w-4 text-primary" />
-                {dashboard.xassida.rows.length} lignes suivies
-              </div>
+              <p className="font-heading text-4xl font-semibold text-gold">
+                {objective.percent}%
+              </p>
             </div>
+            <div className="progress-track mt-5 h-4 w-full rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-gold transition-[width] duration-700 ease-out"
+                style={{ width: `${Math.max(objective.percent, 2)}%` }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">
+              Une jauge collective pour porter ensemble la communauté vers le Magal.
+              Chaque Jukki déclaré rapproche le Daara de son objectif.
+            </p>
+          </Card>
+        </section>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-secondary/45 text-muted-foreground">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Xassida</th>
-                    <th className="px-6 py-4 font-semibold">Statut</th>
-                    <th className="px-6 py-4 font-semibold">Soumissions</th>
-                    <th className="px-6 py-4 font-semibold">Quantite</th>
-                    <th className="px-6 py-4 font-semibold">Derniere activite</th>
-                    <th className="px-6 py-4 font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dashboard.xassida.rows.map((item) => (
-                    <tr key={item.id} className="border-t border-border/60 align-top">
-                      <td className="px-6 py-4">
-                        <p className="font-semibold">{item.label}</p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          {item.slug}
-                        </p>
-                        {item.description ? (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            {item.description}
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={
-                            item.isActive
-                              ? "inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
-                              : "inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700"
+        {/* ---- Classement Xassidas + Couverture Jukki ---- */}
+        <section className="grid gap-4 lg:grid-cols-2">
+          <LeaderboardCard
+            title="Xassidas les plus récitées"
+            icon={<Trophy className="h-5 w-5 text-gold" />}
+            items={data.topXassidas
+              .filter((item) => item.totalQuantity > 0)
+              .map((item) => ({ label: item.label, value: item.totalQuantity }))}
+            emptyLabel="Aucune Xassida récitée pour le moment."
+          />
+
+          <LeaderboardCard
+            title="Zikrs les plus partagés"
+            icon={<Sparkles className="h-5 w-5 text-gold" />}
+            items={data.topZikrs.map((item) => ({
+              label: item.label,
+              value: item.totalQuantity
+            }))}
+            emptyLabel="Aucun zikr déclaré pour le moment."
+          />
+        </section>
+
+        {/* ---- Couverture des Jukki ---- */}
+        <section>
+          <Card className="animate-fade-up p-6">
+            <div className="flex items-center gap-2 text-primary">
+              <Hash className="h-5 w-5 text-gold" />
+              <h2 className="font-heading text-xl font-semibold">
+                Couverture des Jukki
+              </h2>
+            </div>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Intensité = nombre de participants ayant complété chaque Jukki.
+            </p>
+            <div className="mt-5 grid grid-cols-6 gap-2 sm:grid-cols-10">
+              {data.kamilDistribution.map((item) => {
+                const ratio = item.submissionCount / maxKamil;
+                const active = item.submissionCount > 0;
+                return (
+                  <div
+                    key={item.kamilNumber}
+                    title={`Jukki ${item.kamilNumber} · ${item.submissionCount} participant(s)`}
+                    className="flex aspect-square flex-col items-center justify-center rounded-xl border text-center"
+                    style={
+                      active
+                        ? {
+                            backgroundColor: `hsl(158 66% 18% / ${0.15 + ratio * 0.85})`,
+                            borderColor: "transparent",
+                            color: ratio > 0.45 ? "hsl(44 56% 97%)" : "hsl(158 44% 12%)"
                           }
-                        >
-                          {item.isActive ? "Active" : "Masquee"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-semibold">{item.submissionCount}</td>
-                      <td className="px-6 py-4 font-semibold">{item.totalQuantity}</td>
-                      <td className="px-6 py-4 text-muted-foreground">
-                        {formatDate(item.lastSubmissionAt)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <form action={toggleXassidaStatusAction}>
-                          <input type="hidden" name="id" value={item.id} />
-                          <input
-                            type="hidden"
-                            name="nextStatus"
-                            value={item.isActive ? "false" : "true"}
-                          />
-                          <Button type="submit" variant={item.isActive ? "ghost" : "secondary"}>
-                            {item.isActive ? "Masquer" : "Activer"}
-                          </Button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        : {
+                            backgroundColor: "hsl(var(--secondary))",
+                            borderColor: "hsl(var(--border))",
+                            color: "hsl(var(--muted-foreground))"
+                          }
+                    }
+                  >
+                    <span className="font-heading text-lg font-semibold leading-none">
+                      {item.kamilNumber}
+                    </span>
+                    <span className="text-[0.6rem] opacity-80">
+                      {item.submissionCount}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </Card>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-          <Card className="section-fade overflow-hidden">
-            <div className="flex flex-col gap-2 border-b border-border/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                  Indicateurs Kamil
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Vision detaillee par numero de Kamil
-                </h2>
-              </div>
-            </div>
-            <div className="grid gap-3 p-6 sm:grid-cols-2 xl:grid-cols-3">
-              {dashboard.kamil.rows.map((item) => (
-                <div
-                  key={item.kamilNumber}
-                  className="rounded-3xl border border-border/70 bg-white/80 p-4"
-                >
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Kamil {item.kamilNumber}
-                  </p>
-                  <p className="mt-3 text-2xl font-semibold">{item.submissionCount}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    soumission{item.submissionCount > 1 ? "s" : ""} ayant coche ce numero
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          <Card className="section-fade overflow-hidden">
-            <div className="flex flex-col gap-2 border-b border-border/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
-                  Indicateurs Zikrs
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Dernieres saisies de Zikrs
-                </h2>
-              </div>
-            </div>
-            <div className="space-y-3 p-6">
-              {dashboard.zikrs.recentEntries.length > 0 ? (
-                dashboard.zikrs.recentEntries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="rounded-3xl border border-border/70 bg-white/80 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="font-semibold">{entry.fullName}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(entry.createdAt)}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                      {entry.preview}
-                      {entry.preview.length >= 140 ? "..." : ""}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-3xl border border-dashed border-border/80 bg-white/70 p-5 text-sm text-muted-foreground">
-                  Aucun zikr detaille n&apos;est encore disponible.
-                </div>
-              )}
-            </div>
-          </Card>
+        {/* ---- Flux des dernières déclarations ---- */}
+        <section>
+          <DeclarationsFeed
+            declarations={data.recentDeclarations}
+            lastSubmissionAt={data.lastSubmissionAt}
+          />
         </section>
       </div>
     </main>
